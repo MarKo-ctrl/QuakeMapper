@@ -1,5 +1,5 @@
-# getand clean data
-import requests
+from lib import get_data
+
 import re
 from datetime import datetime
 
@@ -12,22 +12,8 @@ from shapely.geometry import Point
 import matplotlib.pyplot as plt
 import contextily as cx
 
-
-## Get the Data
-# The National Observatory of Athens has an earthquake catalog; for each year there is a txt file with all the earthquakes in Greece
-
 years = [2021, 2022]
-noa_url = [f'https://www.gein.noa.gr/HTML/Noa_cat/CAT{year}.TXT' for year in years]
-
-for url in noa_url:
-    filename = f"Data/{url.split('/')[-1]}"
-    with open(filename, mode='w') as f:
-        try:
-            f.write((response := requests.get(url)).text)
-            response.status_code
-        except Exception as e:
-            print(e)
-            print('Website currently not available')
+get_data.get_earthquakes(years)
 
 
 ## Data Cleaning
@@ -46,7 +32,7 @@ def to_date(text):
 
     Returns:
         list: A list of strings representing the dates found, formatted as 'DD/MM/YYYY'.
-              If no valid dates are found, an empty list is returned.
+        If no valid dates are found, an empty list is returned.
     
     Example:
         >>> to_date("The event is planned for 2025 MAR 15 and 2026 APR 02.")
@@ -288,3 +274,4 @@ _ = cx.bounds2raster(w, s, e, n,
 ax = eques_wm_clip.plot(figsize=(24,10), column = 'Magnitude(Local)', legend=True)
 cx.add_basemap(ax, source = 'Data/heraklion_positron.tif')
 ax.set_axis_off()
+plt.show()
