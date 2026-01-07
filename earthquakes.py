@@ -1,6 +1,7 @@
 from lib import get_data
 from lib import transform
-from lib import plot
+# from lib import plot
+import subprocess
 
 years = [2021, 2022]
 get_data.get_earthquakes(years)
@@ -22,4 +23,9 @@ transform.gdf_info(eques_wm)
 # mask will be used to clip the GeoDataFrame to the area of interest
 mask_wm, eques_wm_clip = transform.clip_gdf(eques_wm, 'Data/mask.geojson', 3857)
 
-plot.quick_plot(eques_wm_clip, 'Data/heraklion_positron.tif')
+# plot.quick_plot(eques_wm_clip, 'Data/heraklion_positron.tif')
+
+transform.export2geojson(eques_wm_clip, 'Data/earthquakes.geojson')
+
+# R plot
+subprocess.run(['Rscript', r'.\earthquakes_plot.R', r'D:\python\QuakeMapper\Data\earthquakes.geojson'])

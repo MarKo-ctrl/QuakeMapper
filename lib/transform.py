@@ -1,4 +1,5 @@
 import pandas as pd
+# import pyogrio
 import geopandas as gpd
 from. import extract
 
@@ -53,3 +54,10 @@ def gdf_info(gdf):
     print(f"Rows:{gdf.shape[0]}, Columns:{gdf.shape[1]}")
     print(gdf.head())
     print(gdf.tail(),'\n\n')
+
+def export2geojson(df, path):
+    try:
+        df.to_file(path, driver = 'GeoJSON')
+        print(f'GeoJSON file saved successfully as {path}')
+    except Exception as e:
+        print(f'Error saving GeoJSON: {e}')
