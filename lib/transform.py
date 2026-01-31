@@ -17,8 +17,8 @@ def text2df(filename: str, _crs: str):
 
     Returns:
         gpd.GeoDataFrame: A GeoDataFrame containing geological data including
-                          'Date', 'Time(GMT)', 'Depth(km)', 'Magnitude(Local)', 
-                          and 'geometry' as Point objects. 
+                        'Date', 'Time(GMT)', 'Depth(km)', 'Magnitude(Local)', 
+                        and 'geometry' as Point objects. 
 
     Example:
         >>> df = text2df("data.txt", "EPSG:4326")
@@ -27,10 +27,10 @@ def text2df(filename: str, _crs: str):
     with open(filename, 'r', encoding='UTF-8') as f:
         lines = '\n'.join(f.readlines())
         d = {'Date': extract.to_date(lines),
-             'Time(GMT)': extract.to_time(lines),
-             'Depth(km)': extract.to_depth(lines),
-             'Magnitude(Local)': extract.to_magnitude(lines),
-             'geometry': extract.create_points(lines)}
+            'Time(GMT)': extract.to_time(lines),
+            'Depth(km)': extract.to_depth(lines),
+            'Magnitude(Local)': extract.to_magnitude(lines),
+            'geometry': extract.create_points(lines)}
         gdf = gpd.GeoDataFrame(d, crs = _crs)
     # set the date as the dataframe index
     gdf['Date'] = pd.to_datetime(gdf['Date'], dayfirst=True)
@@ -57,7 +57,7 @@ def gdf_info(gdf):
 
 def export2geojson(df, path):
     try:
-        df.to_file(path, driver = 'GeoJSON')
+        df.to_file(path, driver = 'GeoJSON', index = True)
         print(f'GeoJSON file saved successfully as {path}')
     except Exception as e:
         print(f'Error saving GeoJSON: {e}')
