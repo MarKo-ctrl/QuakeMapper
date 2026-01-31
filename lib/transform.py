@@ -1,4 +1,5 @@
 import pandas as pd
+from pandas import DatetimeIndex
 # import pyogrio
 import geopandas as gpd
 from. import extract
@@ -36,7 +37,8 @@ def text2df(filename: str, _crs: str):
     gdf['Date'] = pd.to_datetime(gdf['Date'], dayfirst=True)
     gdf = gdf.set_index('Date')
     # separate column for month
-    gdf['Month'] = gdf.index.month_name()
+    # gdf['Month'] = gdf.index.month_name()
+    gdf['Month'] = pd.DatetimeIndex(gdf.index).strftime('%B')
     return gdf
 
 def combine_df(lst_df: list):
