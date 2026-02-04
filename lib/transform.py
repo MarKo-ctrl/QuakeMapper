@@ -1,6 +1,4 @@
 import pandas as pd
-from pandas import DatetimeIndex
-# import pyogrio
 import geopandas as gpd
 from. import extract
 
@@ -53,6 +51,7 @@ def clip_gdf(gdf, mask_path, _crs: int):
 
 
 def gdf_info(gdf):
+    print
     print(f"Rows:{gdf.shape[0]}, Columns:{gdf.shape[1]}")
     print(gdf.head())
     print(gdf.tail(),'\n\n')
