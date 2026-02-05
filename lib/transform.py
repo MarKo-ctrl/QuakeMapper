@@ -31,7 +31,6 @@ def text2df(filename: str, _crs: str):
             'Magnitude(Local)': extract.to_magnitude(lines),
             'geometry': extract.create_points(lines)}
         gdf = gpd.GeoDataFrame(d, crs = _crs)
-    gdf.name = filename.split('/')[-1].split('.')[0]
     # set the date as the dataframe index
     gdf['Date'] = pd.to_datetime(gdf['Date'], dayfirst=True)
     gdf = gdf.set_index('Date')
@@ -41,8 +40,6 @@ def text2df(filename: str, _crs: str):
     return gdf
 
 def combine_df(lst_df: list):
-    "Combine a list of GeoDataFrames into a single GeoDataFrame."
-    lst_df.name = 'Combined_GDF'
     return pd.concat(lst_df, ignore_index = True)
 
 def reproject(gdf, _crs: int):
@@ -52,8 +49,9 @@ def clip_gdf(gdf, mask_path, _crs: int):
     m = gpd.GeoSeries.from_file(mask_path)
     return (mask := m.to_crs(epsg = _crs)), gpd.clip(gdf, mask)
 
+
 def gdf_info(gdf):
-    print(f"GeoDataFrame name: {gdf.name}")
+    print
     print(f"Rows:{gdf.shape[0]}, Columns:{gdf.shape[1]}")
     print(gdf.head())
     print(gdf.tail(),'\n\n')
