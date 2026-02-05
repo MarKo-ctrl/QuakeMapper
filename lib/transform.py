@@ -31,16 +31,19 @@ def text2df(filename: str, _crs: str):
             'Magnitude(Local)': extract.to_magnitude(lines),
             'geometry': extract.create_points(lines)}
         gdf = gpd.GeoDataFrame(d, crs = _crs)
+    gdf.attrs['name'] = filename.split('/')[-1].split('.')[0]
     # set the date as the dataframe index
     gdf['Date'] = pd.to_datetime(gdf['Date'], dayfirst=True)
     gdf = gdf.set_index('Date')
     # separate column for month
-    # gdf['Month'] = gdf.index.month_name()
     gdf['Month'] = pd.DatetimeIndex(gdf.index).strftime('%B')
     return gdf
 
 def combine_df(lst_df: list):
-    return pd.concat(lst_df, ignore_index = True)
+    "Combine a list of GeoDataFrames into a single GeoDataFrame."
+    df = pd.concat(lst_df, ignore_index = True)
+    df.attrs['name'] = 'Combined'
+    return df
 
 def reproject(gdf, _crs: int):
     return gdf.to_crs(epsg = _crs)
@@ -51,7 +54,7 @@ def clip_gdf(gdf, mask_path, _crs: int):
 
 
 def gdf_info(gdf):
-    print
+    print(f"GeoDataFrame name: {gdf.attrs.get('name')}")
     print(f"Rows:{gdf.shape[0]}, Columns:{gdf.shape[1]}")
     print(gdf.head())
     print(gdf.tail(),'\n\n')
