@@ -1,6 +1,6 @@
 from lib import get_data
 from lib import transform
-
+from lib.plot import monthly_frames, build_gif
 from lib import plot
 # import subprocess
 
@@ -22,15 +22,34 @@ eques_wm = transform.reproject(eques_gdf, 3857)
 transform.gdf_info(eques_wm)
 
 # mask will be used to clip the GeoDataFrame to the area of interest
-mask_wm, eques_wm_clip = transform.clip_gdf(eques_wm, "Data/mask.geojson", 3857)
+mask_wm, eques_wm_clip = transform.clip_gdf(eques_wm,
+                                            "Data/mask.geojson",
+                                            3857)
 
 # plot.quick_plot(eques_wm_clip, 'Data/heraklion_positron.tif')
-plot.folium_plot(eques_wm_clip, html_path='Data/earthquakes_map.html', zoom_start=8, tiles='CartoDB Positron')
+plot.folium_plot(eques_wm_clip,
+                html_path='Data/earthquakes_map.html',
+                zoom_start=8,
+                tiles='CartoDB Positron')
 
 # transform.export2geojson(eques_wm_clip, "Data/earthquakes.geojson")
 
 # R plot
 # Windows
-# subprocess.run(['Rscript', r'.\earthquakes_plot.R', r'D:\python\QuakeMapper\Data\earthquakes.geojson'])
+# subprocess.run(['Rscript',
+#             r'.\earthquakes_plot.R',
+#             r'D:\python\QuakeMapper\Data\earthquakes.geojson'])
 # Linux
-# subprocess.run(["Rscript", r"earthquakes_plot.R", r"Data/earthquakes.geojson", "4"])
+# subprocess.run(["Rscript",
+#                 r"earthquakes_plot.R",
+#                 r"Data/earthquakes.geojson",
+#                 "4"])
+
+frames = monthly_frames(
+    eques_wm_clip,
+    basemap_path='Data/heraklion_positron.tif',
+    out_dir='frames')
+
+build_gif(frames, 'Data/earthquakes_monthly.gif', seconds_per_frame=2000)
+
+print("Saved frames:", frames)
