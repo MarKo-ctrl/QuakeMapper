@@ -1,14 +1,15 @@
 import pandas as pd
 import geopandas as gpd
-from. import extract
+from . import extract
+
 
 def text2df(filename: str, _crs: str):
     """
     Convert a text file into a GeoDataFrame containing geographical data.
 
-    This function reads a text file specified by the filename and extracts 
+    This function reads a text file specified by the filename and extracts
     information such as date, time, depth, magnitude, and geographic coordinates.
-    It organizes the extracted data into a dictionary and then constructs 
+    It organizes the extracted data into a dictionary and then constructs
     a GeoDataFrame using GeoPandas with the given coordinate reference system.
 
     Args:
@@ -16,33 +17,30 @@ def text2df(filename: str, _crs: str):
 
     Returns:
         gpd.GeoDataFrame: A GeoDataFrame containing geological data including
-                        'Date', 'Time(GMT)', 'Depth(km)', 'Magnitude(Local)', 
-                        and 'geometry' as Point objects. 
+                        'Date', 'Time(GMT)', 'Depth(km)', 'Magnitude(Local)',
+                        and 'geometry' as Point objects.
 
     Example:
         >>> df = text2df("data.txt", "EPSG:4326")
         >>> print(df.head())
     """
-    with open(filename, 'r', encoding='UTF-8') as f:
-        lines = '\n'.join(f.readlines())
-        d = {'Date': extract.to_date(lines),
-            'Time(GMT)': extract.to_time(lines),
-            'Depth(km)': extract.to_depth(lines),
-            'Magnitude(Local)': extract.to_magnitude(lines),
-            'geometry': extract.create_points(lines)}
-        gdf = gpd.GeoDataFrame(d, crs = _crs)
-    gdf.attrs['name'] = filename.split('/')[-1].split('.')[0]
-    # set the date as the dataframe index
-    gdf['Date'] = pd.to_datetime(gdf['Date'], dayfirst=True)
-    gdf = gdf.set_index('Date')
-    # separate column for month
-    gdf['Month'] = pd.DatetimeIndex(gdf.index).strftime('%B')
+    with open(filename, "r", encoding="UTF-8") as f:
+        lines = "\n".join(f.readlines())
+        d = {
+            "Date": extract.to_date(lines),
+            "Time(GMT)": extract.to_time(lines),
+            "Depth(km)": extract.to_depth(lines),
+            "Magnitude(Local)": extract.to_magnitude(lines),
+            "geometry": extract.create_points(lines),
+        }
+        gdf = gpd.GeoDataFrame(d, crs=_crs)
+    gdf.attrs["name"] = filename.split("/")[-1].split(".")[0]
     return gdf
 
 def combine_df(lst_df: list):
     "Combine a list of GeoDataFrames into a single GeoDataFrame."
-    df = pd.concat(lst_df, ignore_index = True)
-    df.attrs['name'] = 'Combined'
+    df = pd.concat(lst_df, ignore_index=True)
+    df.attrs["name"] = "Combined"
     return df
 
 def reproject(gdf, _crs: int):
@@ -57,11 +55,11 @@ def gdf_info(gdf):
     print(f"GeoDataFrame name: {gdf.attrs.get('name')}")
     print(f"Rows:{gdf.shape[0]}, Columns:{gdf.shape[1]}")
     print(gdf.head())
-    print(gdf.tail(),'\n\n')
+    print(gdf.tail(), "\n\n")
 
 def export2geojson(df, path):
     try:
-        df.to_file(path, driver = 'GeoJSON', index = True)
-        print(f'GeoJSON file saved successfully as {path}')
+        df.to_file(path, driver="GeoJSON", index=True)
+        print(f"GeoJSON file saved successfully as {path}")
     except Exception as e:
-        print(f'Error saving GeoJSON: {e}')
+        print(f"Error saving GeoJSON: {e}")
