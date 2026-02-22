@@ -44,11 +44,11 @@ def combine_df(lst_df: list):
     return df
 
 def reproject(gdf, _crs: int):
-    return gdf.to_crs(epsg = _crs)
+    return gdf.to_crs(epsg=_crs)
 
 def clip_gdf(gdf, mask_path, _crs: int):
     m = gpd.GeoSeries.from_file(mask_path)
-    return (mask := m.to_crs(epsg = _crs)), gpd.clip(gdf, mask)
+    return (mask := m.to_crs(epsg=_crs)), gpd.clip(gdf, mask)
 
 
 def gdf_info(gdf):
@@ -56,6 +56,7 @@ def gdf_info(gdf):
     print(f"Rows:{gdf.shape[0]}, Columns:{gdf.shape[1]}")
     print(gdf.head())
     print(gdf.tail(), "\n\n")
+
 
 def export2geojson(df, path):
     try:

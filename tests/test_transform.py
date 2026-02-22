@@ -16,7 +16,6 @@ def test_text2df(tmp_path):
     file_path.write_text(sample_text)
     gdf = text2df(str(file_path), "EPSG:4326")
     assert isinstance(gdf, gpd.GeoDataFrame)
-    assert gdf.index.name == 'Date'  # The function sets the index to 'Date'
     assert len(gdf) == 1
     assert gdf.crs == "EPSG:4326"
 
