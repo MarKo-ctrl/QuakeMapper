@@ -11,22 +11,22 @@ def to_date(text):
     the format 'YYYY MMM DD', where 'YYYY' is a 4-digit year, 'MMM'
     is a 3-letter month abbreviation (in uppercase), and 'DD'
     is the 1 or 2-digit day of the month. It extracts any matching
-    dates and returns them in the 'DD/MM/YYYY' format.
+    dates and returns them as datetime objects.
 
     Args:
         text (str): The input text containing potential date strings.
 
     Returns:
-        list: A list of strings representing the dates found, formatted as 'DD/MM/YYYY'.
+        list: A list of datetime.datetime objects representing the dates found.
         If no valid dates are found, an empty list is returned.
 
     Example:
         >>> to_date("The event is planned for 2025 MAR 15 and 2026 APR 02.")
-        ['15/03/2025', '02/04/2026']
+        [datetime.datetime(2025, 3, 15, 0, 0), datetime.datetime(2026, 4, 2, 0, 0)]
     """
     date_re = re.compile(r"(\d{4}\s+[A-Z]{3}\s+\d{1,2})")
     dates = date_re.findall(text)
-    return [datetime.strptime(d, "%Y %b %d").strftime("%d/%m/%Y") for d in dates]
+    return [datetime.strptime(d, "%Y %b %d") for d in dates]
 
 
 def to_time(text):
@@ -37,22 +37,22 @@ def to_time(text):
     the format 'HH MM SS.ssssss', where 'HH' is the 2-digit hour (24-hour format),
     'MM' is the 2-digit minute, and 'SS.ssssss' represents the seconds
     which may include a fractional part. It extracts any matching times
-    and returns them in the 'HH:MM:SS.ssssss' format.
+    and returns them as datetime.time objects.
 
     Args:
         text (str): The input text containing potential time strings.
 
     Returns:
-        list: A list of strings representing the times found, formatted as 'HH:MM:SS.ssssss'.
+        list: A list of datetime.time objects representing the times found.
         If no valid times are found, an empty list is returned.
 
     Example:
         >>> to_time("The event starts at 14 30 59.123456 and ends at 15 45 50.654321.")
-        ['14:30:59.123456', '15:45:50.654321']
+        [datetime.time(14, 30, 59, 123456), datetime.time(15, 45, 50, 654321)]
     """
     time_re = re.compile(r"\d{2}\s{1}\d{2}\s{1}[\d.]+")
     times = time_re.findall(text)
-    return [datetime.strptime(t, "%H %M %S.%f").strftime("%H:%M:%S.%f") for t in times]
+    return [datetime.strptime(t, "%H %M %S.%f").time() for t in times]
 
 
 def to_latitude(text):

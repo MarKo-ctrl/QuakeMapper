@@ -1,4 +1,5 @@
 import pytest
+from datetime import datetime
 from ..lib.extract import to_date, to_time, to_latitude, to_longitude, to_depth, to_magnitude, create_points
 
 # Sample text mimicking the data file format
@@ -11,11 +12,11 @@ DATE         TIME     LAT.   LONG.  DEPTH    MAGNITUDE
 
 def test_to_date():
     dates = to_date(sample_text)
-    assert dates == ['01/01/2021', '15/02/2021']
+    assert dates == [datetime(2021, 1, 1), datetime(2021, 2, 15)]
 
 def test_to_time():
     times = to_time(sample_text)
-    assert times == ['00:38:24.300000', '14:30:59.100000']
+    assert times == [datetime.time(0, 38, 24, 300000), datetime.time(14, 30, 59, 100000)]
 
 def test_to_latitude():
     lats = to_latitude(sample_text)
