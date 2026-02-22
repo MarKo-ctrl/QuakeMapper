@@ -48,8 +48,9 @@ plot.folium_plot(eques_wm_clip,
 frames = monthly_frames(
     eques_wm_clip,
     basemap_path='Data/heraklion_positron.tif',
-    out_dir='frames')
+    out_dir='frames',
+    figsize=(10, 5))
 
-build_gif(frames, 'Data/earthquakes_monthly.gif', seconds_per_frame=2000)
+build_gif(frames, 'frames/earthquakes.gif', seconds_per_frame=300)
 
 print("Saved frames:", frames)

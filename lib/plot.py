@@ -1,6 +1,5 @@
 import os
 import numpy as np
-import pandas as pd
 import matplotlib.pyplot as plt
 import rasterio
 import rasterio.plot
@@ -129,20 +128,6 @@ def monthly_frames(gdf_plot,
     ymin = global_miny - pad
     ymax = global_maxy + pad
 
-    # ensure Date column exists and create Year-Month grouping
-    if "Date" not in gdf_plot.columns:
-        if isinstance(gdf_plot.index, pd.DatetimeIndex):
-            gdf_plot["Date"] = gdf_plot.index
-        elif "Month" in gdf_plot.columns:
-            raise ValueError("Date column required for year-month grouping.")
-        else:
-            raise ValueError("No 'Date' information available to group by year-month.")
-
-    gdf_plot["Date"] = pd.to_datetime(gdf_plot["Date"], dayfirst=True, errors="coerce")
-    gdf_plot["Year"] = gdf_plot["Date"].dt.year
-    gdf_plot["Month"] = gdf_plot["Date"].dt.strftime("%B")
-    gdf_plot["YearMonth"] = gdf_plot["Date"].dt.to_period("M")
-
     # consistent depth scale across months
     depth_col = "Depth(km)"
     if depth_col in gdf_plot.columns and not gdf_plot[depth_col].isna().all():
@@ -150,6 +135,11 @@ def monthly_frames(gdf_plot,
         vmax = float(gdf_plot[depth_col].max())
     else:
         vmin, vmax = None, None
+
+    # add Year and Month columns for grouping
+    gdf_plot["Year"] = gdf_plot["Date"].dt.year
+    gdf_plot["Month"] = gdf_plot["Date"].dt.strftime("%B")
+    gdf_plot["YearMonth"] = gdf_plot["Date"].dt.to_period("M")
 
     # read basemap once
     with rasterio.open(basemap_path) as src:
