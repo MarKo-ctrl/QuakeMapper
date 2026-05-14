@@ -1,9 +1,13 @@
 import requests
 import os
 
-## Get the Data
-# The National Observatory of Athens has an earthquake catalog; for each year there is a txt file with all the earthquakes in Greece.
-# Each text file is named 'CAT' followed by the year e.g. 'CAT2019.TXT' 
+# Core Responsibilities of get_data.py
+# 
+# 1. Generate monthly date ranges — from 2000-01-01 to present, producing start/end pairs for each month
+# 2. Build the USGS query URL for each chunk
+# 3. Fetch each chunk from the API and handle the response
+# 4. Assemble chunks into a single dataset
+# 5. Cache locally as Parquet to avoid re-fetching
 
 def make_url(years):
     return [f'https://www.gein.noa.gr/HTML/Noa_cat/CAT{year}.TXT' for year in years]
@@ -26,3 +30,6 @@ def get_earthquakes(years: list):
                 except Exception as e:
                     print(e)
                     print('Website currently not available')
+
+def get_usgs(url):
+    return requests.get(url).text
