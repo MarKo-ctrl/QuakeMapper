@@ -8,7 +8,7 @@ DB_NAME = "quakemapper"
 
 CREATE_TABLE = """
 CREATE TABLE IF NOT EXISTS earthquakes (
-    id          VARCHAR(20) PRIMARY KEY,
+    id          VARCHAR(50) PRIMARY KEY,
     time        TIMESTAMP WITH TIME ZONE NOT NULL,
     year        SMALLINT NOT NULL,
     month       SMALLINT NOT NULL,
