@@ -88,6 +88,9 @@ def parse_feature(feature: dict) -> dict:
             f.write(f"{feature['id']}, {dt.year}, {dt.month}\n")
         return None
     
+    if len(feature["id"]) > 20:
+        print(f"Long ID found: {feature['id']} ({len(feature['id'])} chars)")
+    
     return {
         "id": feature["id"],
         "time": dt,
@@ -153,7 +156,6 @@ def fetch_all(start_yr: int, end_yr: int) -> None:
             continue
         print(f"{start.year}-{start.month:02d}: fetching ...", end=" ", flush=True)
         records = fetch_chunk(start, end)
-        print(len(records))
         insert_chunk(engine, records)
         print(f"{len(records)} events inserted.")
 
