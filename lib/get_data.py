@@ -13,6 +13,17 @@ from sqlalchemy import (
 )
 from sqlalchemy.dialects.postgresql import TIMESTAMP as PG_TIMESTAMP, insert as pg_insert
 from sqlalchemy.engine import URL
+import logging
+
+logging.basicConfig(
+                filename="logs/info_insert.log",
+                encoding="utf-8",
+                filemode="a",
+                format="{asctime} - {levelname} - {message}",
+                style="{",
+                datefmt="%Y-%m-%d %H:%M",
+                level=logging.INFO
+                )
 
 load_dotenv()
 
@@ -84,12 +95,11 @@ def parse_feature(feature: dict) -> dict:
     dt = datetime.fromtimestamp(props["time"] / 1000, tz=timezone.utc)
 
     if props["mag"] is None:
-        with open("logs/skipped_events.log", "a") as f:
-            f.write(f"{feature['id']}, {dt.year}, {dt.month}\n")
+        logging.warning(f"{feature['id']}, {dt.year}, {dt.month} - null magnitude")
         return None
     
     if len(feature["id"]) > 20:
-        print(f"Long ID found: {feature['id']} ({len(feature['id'])} chars)")
+        logging.warning(f"Long ID found: {feature['id']} ({len(feature['id'])} chars)")
     
     return {
         "id": feature["id"],
@@ -152,12 +162,15 @@ def fetch_all(start_yr: int, end_yr: int) -> None:
     engine = _get_engine()
     for start, end in generate_date_ranges(start_yr, end_yr):
         if month_exists(engine, start.year, start.month):
-            print(f"{start.year}-{start.month:02d}: already loaded, skipping.")
+            logging.info(f"{start.year}-{start.month:02d}: already loaded, skipping.")
             continue
-        print(f"{start.year}-{start.month:02d}: fetching ...", end=" ", flush=True)
+
+        logging.info(f"{start.year}-{start.month:02d}: fetching ...")
+        
         records = fetch_chunk(start, end)
         insert_chunk(engine, records)
-        print(f"{len(records)} events inserted.")
+        
+        logging.info(f"{len(records)} events inserted.")
 
 
 if __name__ == "__main__":
