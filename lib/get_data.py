@@ -1,19 +1,17 @@
-import os
 import calendar
+import logging
 import requests
 from datetime import date, datetime, timezone
 
-from dotenv import load_dotenv
 from geoalchemy2 import Geometry
 from geoalchemy2.elements import WKTElement
 from sqlalchemy import (
-    create_engine, text,
+    text,
     Table, Column, MetaData,
     String, SmallInteger, Numeric, Integer, Text,
 )
 from sqlalchemy.dialects.postgresql import TIMESTAMP as PG_TIMESTAMP, insert as pg_insert
-from sqlalchemy.engine import URL
-import logging
+from .db import get_engine
 
 logging.basicConfig(
                 filename="logs/info_insert.log",
@@ -25,9 +23,6 @@ logging.basicConfig(
                 level=logging.INFO
                 )
 
-load_dotenv()
-
-DB_NAME = "quakemapper"
 USGS_BASE = "https://earthquake.usgs.gov/fdsnws/event/1/query"
 
 _meta = MetaData()
@@ -46,16 +41,6 @@ _earthquakes = Table(
     Column("sig", Integer),
     Column("geom", Geometry("POINT", srid=4326), nullable=False),
 )
-
-
-def _get_engine():
-    return create_engine(URL.create(
-        "postgresql+psycopg2",
-        username=os.environ.get("PGUSER", "marko"),
-        database=DB_NAME,
-        host=os.environ.get("PGHOST", "/var/run/postgresql"),
-        port=int(os.environ.get("PGPORT", 5432)),
-    ))
 
 
 def generate_date_ranges(start_yr=2000, end_yr=2026) -> list[tuple[date, date]]:
@@ -159,7 +144,7 @@ def fetch_all(start_yr: int, end_yr: int) -> None:
     iterates date ranges, skip existing months,
     fetches and inserts.
     '''
-    engine = _get_engine()
+    engine = get_engine()
     for start, end in generate_date_ranges(start_yr, end_yr):
         if month_exists(engine, start.year, start.month):
             logging.info(f"{start.year}-{start.month:02d}: already loaded, skipping.")

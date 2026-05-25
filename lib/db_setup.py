@@ -1,22 +1,10 @@
-import os
-import psycopg2
 from psycopg2 import sql, errors
-from dotenv import load_dotenv
+from .db import get_psycopg2_connection
 
-load_dotenv()
 DB_NAME = "quakemapper"
 
-def _get_conn_params(dbname="marko_db"):
-    return dict(
-        host=os.environ.get("PGHOST", "localhost"),
-        port=int(os.environ.get("PGPORT", 5432)),
-        user=os.environ.get("PGUSER", "postgres"),
-        dbname=dbname,
-        # no password — libpq reads ~/.pgpass automatically
-    )
-
 def create_database():
-    conn = psycopg2.connect(**_get_conn_params())
+    conn = get_psycopg2_connection(dbname="marko_db")
     conn.autocommit = True
     try:
         with conn.cursor() as cur:
@@ -30,7 +18,7 @@ def create_database():
         conn.close()
 
 def enable_postgis():
-    conn = psycopg2.connect(**_get_conn_params(dbname=DB_NAME))
+    conn = get_psycopg2_connection()
     try:
         with conn.cursor() as cur:
             cur.execute("CREATE EXTENSION IF NOT EXISTS postgis;")

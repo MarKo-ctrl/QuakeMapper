@@ -1,10 +1,4 @@
-import os
-import psycopg2
-from dotenv import load_dotenv
-
-load_dotenv()
-
-DB_NAME = "quakemapper"
+from .db import get_psycopg2_connection
 
 CREATE_TABLE = """
 CREATE TABLE IF NOT EXISTS earthquakes (
@@ -31,12 +25,7 @@ CREATE_INDEXES = [
 
 
 def create_schema():
-    conn = psycopg2.connect(
-        host=os.environ.get("PGHOST", "/var/run/postgresql"),
-        port=int(os.environ.get("PGPORT", 5432)),
-        user=os.environ.get("PGUSER", "marko"),
-        dbname=DB_NAME,
-    )
+    conn = get_psycopg2_connection()
     try:
         with conn.cursor() as cur:
             cur.execute(CREATE_TABLE)
