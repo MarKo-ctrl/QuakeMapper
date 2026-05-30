@@ -1,33 +1,42 @@
 import calendar
 import logging
-import requests
 from datetime import date, datetime, timezone
 
-from geoalchemy2 import Geometry
-from geoalchemy2.elements import WKTElement
+import requests
+from geoalchemy2 import Geometry # pyright: ignore[reportMissingImports]
+from geoalchemy2.elements import WKTElement  # pyright: ignore[reportMissingImports]
 from sqlalchemy import (
+    Column,
+    Integer,
+    MetaData,
+    Numeric,
+    SmallInteger,
+    String,
+    Table,
+    Text,
     text,
-    Table, Column, MetaData,
-    String, SmallInteger, Numeric, Integer, Text,
 )
-from sqlalchemy.dialects.postgresql import TIMESTAMP as PG_TIMESTAMP, insert as pg_insert
+from sqlalchemy.dialects.postgresql import TIMESTAMP as PG_TIMESTAMP
+from sqlalchemy.dialects.postgresql import insert as pg_insert
+
 from .db import get_engine
 
 logging.basicConfig(
-                filename="logs/info_insert.log",
-                encoding="utf-8",
-                filemode="a",
-                format="{asctime} - {levelname} - {message}",
-                style="{",
-                datefmt="%Y-%m-%d %H:%M",
-                level=logging.INFO
-                )
+    filename="logs/info_insert.log",
+    encoding="utf-8",
+    filemode="a",
+    format="{asctime} - {levelname} - {message}",
+    style="{",
+    datefmt="%Y-%m-%d %H:%M",
+    level=logging.INFO,
+)
 
 USGS_BASE = "https://earthquake.usgs.gov/fdsnws/event/1/query"
 
 _meta = MetaData()
 _earthquakes = Table(
-    "earthquakes", _meta,
+    "earthquakes",
+    _meta,
     Column("id", String(20), primary_key=True),
     Column("time", PG_TIMESTAMP(timezone=True), nullable=False),
     Column("year", SmallInteger, nullable=False),
@@ -44,10 +53,10 @@ _earthquakes = Table(
 
 
 def generate_date_ranges(start_yr=2000, end_yr=2026) -> list[tuple[date, date]]:
-    '''
-    Returns a list of (start, end) tuples for 
+    """
+    Returns a list of (start, end) tuples for
     every month for years 2000 to 2025
-    '''
+    """
     ranges = []
     for year in range(start_yr, end_yr):
         for month in range(1, 13):
@@ -58,10 +67,10 @@ def generate_date_ranges(start_yr=2000, end_yr=2026) -> list[tuple[date, date]]:
 
 
 def build_url(start: date, end: date) -> str:
-    '''
+    """
     Constructs the USGS query URL from a start / end
     date pair.
-    '''
+    """
     return (
         f"{USGS_BASE}?format=geojson"
         f"&starttime={start}&endtime={end}"
@@ -71,21 +80,21 @@ def build_url(start: date, end: date) -> str:
 
 
 def parse_feature(feature: dict) -> dict:
-    '''
+    """
     Parses a single GeoJSON featue into a flat dictionary
     matching the database schema.
-    '''
+    """
     props = feature["properties"]
     lon, lat, depth = feature["geometry"]["coordinates"]
     dt = datetime.fromtimestamp(props["time"] / 1000, tz=timezone.utc)
 
     if props["mag"] is None:
         logging.warning(f"{feature['id']}, {dt.year}, {dt.month} - null magnitude")
-        return None
-    
+        # return None
+
     if len(feature["id"]) > 20:
         logging.warning(f"Long ID found: {feature['id']} ({len(feature['id'])} chars)")
-    
+
     return {
         "id": feature["id"],
         "time": dt,
@@ -103,10 +112,10 @@ def parse_feature(feature: dict) -> dict:
 
 
 def fetch_chunk(start: date, end: date) -> list[dict]:
-    '''
+    """
     Fetches one month's data from USGS,
     returns a list of parsed event dictionaries.
-    '''
+    """
     url = build_url(start, end)
     response = requests.get(url, timeout=60)
     response.raise_for_status()
@@ -114,10 +123,10 @@ def fetch_chunk(start: date, end: date) -> list[dict]:
 
 
 def month_exists(engine, year: int, month: int) -> bool:
-    '''
+    """
     Checks the database whether a given
     year/month already has data.
-    '''
+    """
     with engine.connect() as conn:
         result = conn.execute(
             text("SELECT 1 FROM earthquakes WHERE year = :y AND month = :m LIMIT 1"),
@@ -127,10 +136,10 @@ def month_exists(engine, year: int, month: int) -> bool:
 
 
 def insert_chunk(engine, records: list[dict]) -> None:
-    '''
+    """
     Inserts a list of parsed event dictionaries
     into PostGIS.
-    '''
+    """
     if not records:
         return
     stmt = pg_insert(_earthquakes).on_conflict_do_nothing(index_elements=["id"])
@@ -139,11 +148,11 @@ def insert_chunk(engine, records: list[dict]) -> None:
 
 
 def fetch_all(start_yr: int, end_yr: int) -> None:
-    '''
+    """
     Orchastrates the full pipeline;
     iterates date ranges, skip existing months,
     fetches and inserts.
-    '''
+    """
     engine = get_engine()
     for start, end in generate_date_ranges(start_yr, end_yr):
         if month_exists(engine, start.year, start.month):
@@ -151,12 +160,12 @@ def fetch_all(start_yr: int, end_yr: int) -> None:
             continue
 
         logging.info(f"{start.year}-{start.month:02d}: fetching ...")
-        
+
         records = fetch_chunk(start, end)
         insert_chunk(engine, records)
-        
+
         logging.info(f"{len(records)} events inserted.")
 
 
-if __name__ == "__main__":
-    fetch_all()
+# if __name__ == "__main__":
+#     fetch_all()
