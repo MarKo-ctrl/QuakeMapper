@@ -1,5 +1,5 @@
 # import pandas as pd
-import geopandas as gpd
+import geopandas as gpd # pyright: ignore[reportMissingModuleSource]
 
 # from . import extract
 from .db import get_engine

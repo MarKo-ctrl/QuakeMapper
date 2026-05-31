@@ -1,17 +1,33 @@
-from lib import db_queries, plot
+from lib import clustering, db_queries, plot
 
 # get_data.fetch_all(2000, 2003)
 # get_data.fetch_all(2003, 2005)
 # get_data.fetch_all(2005, 2010)
 # get_data.fetch_all(2010, 2026)
 
-eq_2010 = db_queries.load_by_year_range(2010, 2010)
+# eq_2010 = db_queries.load_by_year_range(2010, 2010)
 
-plot.hexbin_plot(eq_2010, 
-    bbox=(-141.85,-40.97,-3.51,60.41),
-    title="2010 Earthquakes in America",
-    gridsize=100,
-    zoom=5)
+# plot.hexbin_plot(eq_2010,
+#     bbox=(-141.85,-40.97,-3.51,60.41),
+#     title="2010 Earthquakes in America",
+#     gridsize=100,
+#     zoom=5)
+
+# eq_2011 = db_queries.load_by_year_range(2011, 2011)
+
+# coords_radians = clustering.degrees_to_radians(eq_2011)
+# clustering.k_dist_plot(coords_radians, k=500)
+
+all_eq = db_queries.load_all()
+
+all_coords_radians = clustering.degrees_to_radians(all_eq)
+clustering.k_dist_plot(all_coords_radians, k=500)
+
+# plot.hexbin_plot(eq_2011,
+#     bbox=(-180,-66.50,180,84),
+#     title="2011 Earthquakes - World",
+#     gridsize=200,
+#     zoom=4)
 
 # eq_45_5 = db_queries.load_magnitude_range(4.5, 5.1)
 # print(eq_45_5.head(10))
