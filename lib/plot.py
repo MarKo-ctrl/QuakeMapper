@@ -1,11 +1,22 @@
 import os
 import contextily as cx  # pyright: ignore[reportMissingImports]
-from matplotlib.colors import ListedColormap
 import matplotlib.pyplot as plt
+from matplotlib.colors import ListedColormap
 
 
 def make_colormap():
-    custom_colors = ['#42f8f8', '#a6cee3', '#1f78b4', '#b2df8a', '#33a02c', '#fb9a99', '#e31a1c', '#fdbf6f', '#ff7f00', '#cab2d6']
+    custom_colors = [
+        "#42f8f8",
+        "#a6cee3",
+        "#1f78b4",
+        "#b2df8a",
+        "#33a02c",
+        "#fb9a99",
+        "#e31a1c",
+        "#fdbf6f",
+        "#ff7f00",
+        "#cab2d6",
+    ]
     return ListedColormap(custom_colors)
 
 
@@ -13,7 +24,7 @@ def generate_basemap_path(w, s, e, n, z):
     return os.getcwd() + f"/basemaps/basemap_{w}_{s}_{e}_{n}_z{z}.tif"
 
 
-# # download a CartoDB basemap based on bbox
+# download a CartoDB basemap based on bbox
 def get_basemap(w=-180, s=-90, e=180, n=90, zoom=3):
     basemap_path = generate_basemap_path(w, s, e, n, zoom)
     if not os.path.exists(basemap_path):
@@ -60,8 +71,9 @@ def hexbin_plot(
     plt.show()
 
 
-def cluster_plot(gdf, cluster_col="cluster_id",
-    bbox: tuple | None = None, title=None, zoom=3):
+def cluster_plot(
+    gdf, cluster_col="cluster_id", bbox: tuple | None = None, title=None, zoom=3
+):
 
     colormap = make_colormap()
 
@@ -70,18 +82,29 @@ def cluster_plot(gdf, cluster_col="cluster_id",
         basemap = get_basemap(*bbox, zoom=zoom)
     else:
         basemap = get_basemap(zoom=zoom)
-    
+
     clusters = gdf.to_crs(3857)
     base = clusters.plot(
         figsize=(24, 12),
         column=cluster_col,
         cmap=colormap,
         legend=True,
-        labels=['Noise', 'Cluster 1', 'Cluster 2', 'Cluster 3', 'Cluster 4', 'Cluster 5', 'Cluster 6', 'Cluster 7', 'Cluster 8', 'Cluster 9'],
+        labels=[
+            "Noise",
+            "Cluster 1",
+            "Cluster 2",
+            "Cluster 3",
+            "Cluster 4",
+            "Cluster 5",
+            "Cluster 6",
+            "Cluster 7",
+            "Cluster 8",
+            "Cluster 9",
+        ],
         categorical=True,
-        markersize=0.7
+        markersize=0.7,
     )
-    
+
     cx.add_basemap(
         base,
         crs=clusters.crs,

@@ -1,11 +1,13 @@
-# import pandas as pd
-import geopandas as gpd # pyright: ignore[reportMissingModuleSource]
+import geopandas as gpd  # pyright: ignore[reportMissingModuleSource]
+from psycopg2.extras import execute_values  # pyright: ignore[reportMissingModuleSource]
+from sqlalchemy import text
+
 from .db import get_engine, get_psycopg2_connection
-from psycopg2.extras import execute_values
 
 # ROLE: query and prepare data for analysis
 
 engine = get_engine()
+EXPECTED_ROW_COUNT = 175_000  # approximate USGS M4.5+ events, 2000-2025
 
 def load_all():
     """
@@ -57,14 +59,16 @@ def load_by_bbox(min_lon, min_lat, max_lon, max_lat):
     )
 
 
-def update_column(table_name: str, column_name: str, new_value, condition: str = None):
+def update_column(
+    table_name: str, column_name: str, new_value, condition: str | None = None
+):
     """
     Update a column in the database
     """
     conn = get_psycopg2_connection()
     query = f"""UPDATE {table_name}
             SET {column_name} = %(new_value)s
-            {f'WHERE {condition}' if condition else ''};"""
+            {f"WHERE {condition}" if condition else ""};"""
     try:
         with conn.cursor() as cur:
             cur.execute(query, {"new_value": new_value})
@@ -82,13 +86,45 @@ def update_cluster_labels(gdf: gpd.GeoDataFrame, table_name: str, column_name: s
     try:
         with get_psycopg2_connection() as conn:
             with conn.cursor() as cur:
-                execute_values(cur,
+                execute_values(
+                    cur,
                     f"""UPDATE {table_name} SET {column_name} = data.val
                     FROM (VALUES %s) AS data (val, id)
                     WHERE {table_name}.id = data.id""",
-                    pairs
+                    pairs,
                 )
             conn.commit()
         print(f"Cluster labels updated in table '{table_name}'.")
     except Exception as e:
         print(f"Error updating cluster labels in table '{table_name}': {e}")
+
+
+def fetch_complete():
+    with engine.connect() as conn:
+        c = conn.execute(
+            text("""SELECT COUNT(*) FROM earthquakes""")
+        )
+        return (c.scalar() or 0) > EXPECTED_ROW_COUNT
+
+def cluster_complete():
+    with engine.connect() as conn:
+        # check that column cluster_id exists
+        e = conn.execute(
+            text("""SELECT EXISTS (SELECT 1 
+            FROM information_schema.columns 
+            WHERE table_schema='public'
+                AND table_name='earthquakes'
+                AND column_name='cluster_id');""")
+        )
+        column_exists = e.all()[0][0]
+
+        if not column_exists:
+            return False
+            
+        # check that cluster_id is not null
+        nn = conn.execute(
+            text("""SELECT COUNT(*) > 0
+            FROM earthquakes
+            WHERE cluster_id IS NOT NULL""")
+        )
+        return nn.all()[0][0]

@@ -1,4 +1,4 @@
-from psycopg2 import sql, errors
+from psycopg2 import sql, errors # pyright: ignore[reportMissingModuleSource]
 from .db import get_psycopg2_connection
 
 

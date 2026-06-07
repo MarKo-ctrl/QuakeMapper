@@ -1,9 +1,23 @@
+import logging
 from lib import clustering, db_queries, plot, db_setup, get_data
 
-get_data.fetch_all(2000, 2003)
-get_data.fetch_all(2003, 2005)
-get_data.fetch_all(2005, 2010)
-get_data.fetch_all(2010, 2026)
+logging.basicConfig(
+    filename="logs/info_execute.log",
+    encoding="utf-8",
+    filemode="a",
+    format="{asctime} - {levelname} - {message}",
+    style="{",
+    datefmt="%Y-%m-%d %H:%M",
+    level=logging.INFO,
+)
+
+if not db_queries.fetch_complete():
+    get_data.fetch_all(2000, 2003)
+    get_data.fetch_all(2003, 2005)
+    get_data.fetch_all(2005, 2010)
+    get_data.fetch_all(2010, 2026)
+else:
+    logging.info("Database already contains all earthquake data.")
 
 # events in 2010
 eq_2010 = db_queries.load_by_year_range(2010, 2010)
@@ -29,17 +43,22 @@ plot.hexbin_plot(eq_2011,
 coords_radians = clustering.degrees_to_radians(eq_2011)
 clustering.k_dist_plot(coords_radians, k=500)
 
-# cluster_id column will store the cluster labels
-db_setup.add_table_column("earthquakes", "cluster_id", "INTEGER")
+if db_queries.cluster_complete():
+    logging.info("Clustering already complete. Skipping.")
+else:
+    # cluster_id column will store the cluster labels
+    db_setup.add_table_column("earthquakes", "cluster_id", "INTEGER")
 
-# fetch all earthquakes and cluster them
+    # fetch all earthquakes and cluster them
+    all_eq = db_queries.load_all()
+    coords_radians = clustering.degrees_to_radians(all_eq)
+    clustering.k_dist_plot(coords_radians, k=200)
+    labels = clustering.dbscan_clustering(coords_radians, eps=0.06, min_samples=1000)
+    all_eq["cluster_id"] = labels
+    logging.info(all_eq.groupby("cluster_id").size().sort_values(ascending=False))  # pyright: ignore[reportCallIssue]
+
+    # update the cluster labels in the database
+    db_queries.update_cluster_labels(all_eq, "earthquakes", "cluster_id")
+
 all_eq = db_queries.load_all()
-coords_radians = clustering.degrees_to_radians(all_eq)
-clustering.k_dist_plot(coords_radians, k=200)
-labels = clustering.dbscan_clustering(coords_radians, eps=0.06, min_samples=1000)
-all_eq["cluster_id"] = labels
-print(all_eq.groupby("cluster_id").size().sort_values(ascending=False))  # pyright: ignore[reportCallIssue]
-
-# update the cluster labels in the database
-db_queries.update_cluster_labels(all_eq, "earthquakes", "cluster_id")
 plot.cluster_plot(all_eq, title="Earthquakes Clusters", zoom=4)
