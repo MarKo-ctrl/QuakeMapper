@@ -89,22 +89,26 @@ def cluster_plot(
         column=cluster_col,
         cmap=colormap,
         legend=True,
-        labels=[
-            "Noise",
-            "Cluster 1",
-            "Cluster 2",
-            "Cluster 3",
-            "Cluster 4",
-            "Cluster 5",
-            "Cluster 6",
-            "Cluster 7",
-            "Cluster 8",
-            "Cluster 9",
-        ],
         categorical=True,
         markersize=0.7,
     )
 
+    legend = base.get_legend()
+    new_labels = [
+        "Noise",
+        "Cluster 1",
+        "Cluster 2",
+        "Cluster 3",
+        "Cluster 4",
+        "Cluster 5",
+        "Cluster 6",
+        "Cluster 7",
+        "Cluster 8",
+        "Cluster 9",
+    ]
+    for text, label in zip(legend.get_texts(), new_labels):
+        text.set_text(label)
+        
     cx.add_basemap(
         base,
         crs=clusters.crs,
