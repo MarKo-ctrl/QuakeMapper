@@ -1,8 +1,7 @@
 # import pandas as pd
 import geopandas as gpd # pyright: ignore[reportMissingModuleSource]
-
-# from . import extract
-from .db import get_engine
+from .db import get_engine, get_psycopg2_connection
+from psycopg2.extras import execute_values
 
 # ROLE: query and prepare data for analysis
 

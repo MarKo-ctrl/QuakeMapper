@@ -1,4 +1,4 @@
-from lib import clustering, db_queries, plot
+from lib import clustering, db, db_queries, plot, db_setup
 
 # get_data.fetch_all(2000, 2003)
 # get_data.fetch_all(2003, 2005)
@@ -18,10 +18,12 @@ from lib import clustering, db_queries, plot
 # coords_radians = clustering.degrees_to_radians(eq_2011)
 # clustering.k_dist_plot(coords_radians, k=500)
 
+db_setup.add_table_column("earthquakes", "cluster_id", "INTEGER")
+
 all_eq = db_queries.load_all()
 coords_radians = clustering.degrees_to_radians(all_eq)
 # clustering.k_dist_plot(coords_radians, k=200)
-labels = clustering.dbscan_clustering(coords_radians, eps=0.06, min_samples=1500)
+labels = clustering.dbscan_clustering(coords_radians, eps=0.06, min_samples=1000)
 all_eq["cluster_id"] = labels
 # print(all_eq.groupby("cluster_id").size().sort_values(ascending=False))
 
