@@ -1,11 +1,14 @@
 import numpy as np
-from sklearn import metrics
 from sklearn.neighbors import NearestNeighbors
 from sklearn.cluster import DBSCAN
 import matplotlib.pyplot as plt
 
 
 def degrees_to_radians(gdf):
+    """
+    Convert degrees to radians for 
+    haversine distance calculation.
+    """
     lats = gdf["geom"].y
     lons = gdf["geom"].x
     coords = np.column_stack((lats, lons))
@@ -13,7 +16,11 @@ def degrees_to_radians(gdf):
     return coords_radians
 
 
-def k_dist_plot(coords_radians, k):
+def k_dist_plot(coords_radians, k=200):
+    """
+    Plot the k-distance graph to find 
+    the optimal eps value.
+    """
     nn = NearestNeighbors(n_neighbors=k,
         metric="haversine",
         algorithm="ball_tree")
@@ -29,6 +36,9 @@ def k_dist_plot(coords_radians, k):
 
 
 def dbscan_clustering(coords_radians, eps, min_samples):
+    """
+    Perform DBSCAN clustering on the given coordinates.
+    """
     db = DBSCAN(eps=eps,
         min_samples=min_samples,
         metric="haversine",
