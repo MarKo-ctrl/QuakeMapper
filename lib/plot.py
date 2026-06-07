@@ -1,17 +1,13 @@
 import os
-# from sklearn.cluster._hdbscan.hdbscan import labelling_at_cut
-import contextily as cx # pyright: ignore[reportMissingImports]
+import contextily as cx  # pyright: ignore[reportMissingImports]
+from matplotlib.colors import ListedColormap
 import matplotlib.pyplot as plt
-import matplotlib.colors as mcolors
-import numpy as np
 
-def make_colormap(n_colors):
-    colors = (
-        plt.cm.tab20.colors +
-        plt.cm.tab20b.colors +
-        plt.cm.tab20c.colors
-    )  # 60 distinct colours total
-    return mcolors.ListedColormap(colors[:n_colors])
+
+def make_colormap():
+    custom_colors = ['#42f8f8', '#a6cee3', '#1f78b4', '#b2df8a', '#33a02c', '#fb9a99', '#e31a1c', '#fdbf6f', '#ff7f00', '#cab2d6']
+    return ListedColormap(custom_colors)
+
 
 def generate_basemap_path(w, s, e, n, z):
     return os.getcwd() + f"/basemaps/basemap_{w}_{s}_{e}_{n}_z{z}.tif"
@@ -22,19 +18,20 @@ def get_basemap(w=-180, s=-90, e=180, n=90, zoom=3):
     basemap_path = generate_basemap_path(w, s, e, n, zoom)
     if not os.path.exists(basemap_path):
         _ = cx.bounds2raster(w, s, e, n,
-            ll=True, # set to True to use lat/lon coordinates
+            ll=True,  # set to True to use lat/lon coordinates
             zoom=zoom,  # zoom level 3 covers the entire world
             # change to 6-8 for regional views
             path=basemap_path,
-            source=cx.providers.CartoDB.Positron,
+            source=cx.providers.CartoDB.DarkMatterNoLabels,
         )
         return basemap_path
     else:
         return basemap_path
 
 
-def hexbin_plot(gdf, gridsize=50, colormap="viridis",
-                bbox: tuple | None = None, title=None, zoom=3):
+def hexbin_plot(
+    gdf, gridsize=50, colormap="viridis", bbox: tuple | None = None, title=None, zoom=3
+):
     gdf_copy = gdf.copy()
     if bbox is not None:
         gdf_copy = gdf_copy.clip(bbox)
@@ -52,7 +49,8 @@ def hexbin_plot(gdf, gridsize=50, colormap="viridis",
         figsize=(24, 10),
         mincnt=1,
     )
-    cx.add_basemap(ax,
+    cx.add_basemap(
+        ax,
         crs=gdf_copy.crs,
         source=basemap,
     )
@@ -62,45 +60,36 @@ def hexbin_plot(gdf, gridsize=50, colormap="viridis",
     plt.show()
 
 
-def cluster_plot(gdf, cluster_col="cluster_id", colormap="tab20", 
+def cluster_plot(gdf, cluster_col="cluster_id",
     bbox: tuple | None = None, title=None, zoom=3):
 
-    # gdf_copy = gdf.copy()
+    colormap = make_colormap()
+
     if bbox is not None:
         gdf = gdf.clip(bbox)
         basemap = get_basemap(*bbox, zoom=zoom)
     else:
         basemap = get_basemap(zoom=zoom)
     
-    n_clusters = gdf[cluster_col].nunique() - 1  # exclude -1 noise
-    cmap = make_colormap(n_clusters)
-
-    fig, ax = plt.subplots(figsize=(24, 10))
-    
-    noise = gdf[gdf[cluster_col] == -1]
-    noise.plot(
-        ax=ax,
-        color="black",
-        markersize=0.5,
-        label="Noise",
+    clusters = gdf.to_crs(3857)
+    base = clusters.plot(
+        figsize=(24, 12),
+        column=cluster_col,
+        cmap=colormap,
         legend=True,
+        labels=['Noise', 'Cluster 1', 'Cluster 2', 'Cluster 3', 'Cluster 4', 'Cluster 5', 'Cluster 6', 'Cluster 7', 'Cluster 8', 'Cluster 9'],
+        categorical=True,
+        markersize=0.7
     )
     
-    clusters = gdf[gdf[cluster_col] != -1]
-    clusters.plot(
-        ax=ax,
-        cmap=cmap,
-        markersize=0.7,
-        label="Clusters",
-        legend=True,
-        legend_kwds={"loc": "left"}
-    )
-    ax.set_xlim(gdf.bounds["minx"].min(), gdf.bounds["maxx"].max())
-    ax.set_ylim(gdf.bounds["miny"].min(), gdf.bounds["maxy"].max())
-    
-    cx.add_basemap(ax,
-        crs=gdf.crs,
+    cx.add_basemap(
+        base,
+        crs=clusters.crs,
         source=basemap,
     )
-    ax.set_axis_off()
+
+    base.set_ylim(ymin=-14000000, ymax=25500000)
+    if title:
+        base.set_title(title)
+    base.set_axis_off()
     plt.show()

@@ -1,6 +1,7 @@
 from psycopg2 import sql, errors
 from .db import get_psycopg2_connection
 
+
 DB_NAME = "quakemapper"
 
 def create_database():
