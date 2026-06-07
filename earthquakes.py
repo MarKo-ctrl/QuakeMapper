@@ -23,9 +23,11 @@ coords_radians = clustering.degrees_to_radians(all_eq)
 # clustering.k_dist_plot(coords_radians, k=200)
 labels = clustering.dbscan_clustering(coords_radians, eps=0.06, min_samples=1500)
 all_eq["cluster_id"] = labels
-print(all_eq.groupby("cluster_id").size().sort_values(ascending=False))
-# all_eq.to_csv("all_eq.csv", index=False)
-# plot.cluster_plot(all_eq, title="Earthquakes Clusters")
+# print(all_eq.groupby("cluster_id").size().sort_values(ascending=False))
+
+db_queries.update_cluster_labels(all_eq, "earthquakes", "cluster_id")
+all_eq.to_csv("all_eq.csv", index=False)
+plot.cluster_plot(all_eq, title="Earthquakes Clusters", zoom=4)
 
 # plot.hexbin_plot(eq_2011,
 #     bbox=(-180,-66.50,180,84),

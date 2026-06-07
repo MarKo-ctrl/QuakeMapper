@@ -56,3 +56,40 @@ def load_by_bbox(min_lon, min_lat, max_lon, max_lat):
             "max_lat": max_lat,
         },
     )
+
+
+def update_column(table_name: str, column_name: str, new_value, condition: str = None):
+    """
+    Update a column in the database
+    """
+    conn = get_psycopg2_connection()
+    query = f"""UPDATE {table_name}
+            SET {column_name} = %(new_value)s
+            {f'WHERE {condition}' if condition else ''};"""
+    try:
+        with conn.cursor() as cur:
+            cur.execute(query, {"new_value": new_value})
+        conn.commit()
+        print(f"Column '{column_name}' updated in table '{table_name}'.")
+    except Exception as e:
+        print(f"Error updating column '{column_name}' in table '{table_name}': {e}")
+
+
+def update_cluster_labels(gdf: gpd.GeoDataFrame, table_name: str, column_name: str):
+    """
+    Update table different values per row
+    """
+    pairs = list(zip(gdf[column_name], gdf["id"]))
+    try:
+        with get_psycopg2_connection() as conn:
+            with conn.cursor() as cur:
+                execute_values(cur,
+                    f"""UPDATE {table_name} SET {column_name} = data.val
+                    FROM (VALUES %s) AS data (val, id)
+                    WHERE {table_name}.id = data.id""",
+                    pairs
+                )
+            conn.commit()
+        print(f"Cluster labels updated in table '{table_name}'.")
+    except Exception as e:
+        print(f"Error updating cluster labels in table '{table_name}': {e}")

@@ -31,5 +31,15 @@ def setup():
     create_database()
     enable_postgis()
 
+
+def add_table_column(table_name: str, column_name: str, data_type: str):
+    query = f"ALTER TABLE {table_name} ADD COLUMN IF NOT EXISTS {column_name} {data_type};"
+    with get_psycopg2_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute(query)
+        conn.commit()
+        print(f"Column '{column_name}' ensured on table '{table_name}'.")
+
+
 if __name__ == "__main__":
     setup()
