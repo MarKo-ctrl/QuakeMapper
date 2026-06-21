@@ -1,4 +1,5 @@
 import logging
+import pandas as pd
 from lib import clustering, db_queries, plot, db_setup, get_data
 
 logging.basicConfig(
@@ -62,3 +63,7 @@ else:
 
 all_eq = db_queries.load_all()
 plot.cluster_plot(all_eq, title="Earthquakes Clusters", zoom=4)
+
+e = db_queries.pct_events_within()
+e_df = pd.DataFrame(e)
+print(e_df)

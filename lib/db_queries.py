@@ -9,6 +9,7 @@ from .db import get_engine, get_psycopg2_connection
 engine = get_engine()
 EXPECTED_ROW_COUNT = 175_000  # approximate USGS M4.5+ events, 2000-2025
 
+
 def load_all():
     """
     Load full dataset.
@@ -101,10 +102,9 @@ def update_cluster_labels(gdf: gpd.GeoDataFrame, table_name: str, column_name: s
 
 def fetch_complete():
     with engine.connect() as conn:
-        c = conn.execute(
-            text("""SELECT COUNT(*) FROM earthquakes""")
-        )
+        c = conn.execute(text("""SELECT COUNT(*) FROM earthquakes"""))
         return (c.scalar() or 0) > EXPECTED_ROW_COUNT
+
 
 def cluster_complete():
     with engine.connect() as conn:
@@ -120,7 +120,7 @@ def cluster_complete():
 
         if not column_exists:
             return False
-            
+
         # check that cluster_id is not null
         nn = conn.execute(
             text("""SELECT COUNT(*) > 0
@@ -128,3 +128,35 @@ def cluster_complete():
             WHERE cluster_id IS NOT NULL""")
         )
         return nn.all()[0][0]
+
+
+def pct_events_within(distances: list[int] = [150_000, 300_000, 500_000]):
+    pct_list = [{"distance": "", "total":"", "within":"", "pct":""} for _ in range(len(distances))]
+
+    with engine.connect() as conn:
+        total_events = conn.execute(text(
+            """
+            SELECT Count(*)
+            FROM earthquakes e;"""
+        )).scalar()
+
+    for i, dist in enumerate(distances):
+        with engine.connect() as conn:
+            pct = conn.execute(
+                text("""
+                SELECT COUNT(*) FILTER (WHERE EXISTS (
+                    SELECT 1 FROM plate_boundaries pb
+                    WHERE ST_DWithin(pb.geom::geography, e.geom::geography, :d)
+                    )) as within_dist,
+                    ROUND(100.0 * COUNT(*) FILTER (WHERE EXISTS (
+                    SELECT 1 FROM plate_boundaries pb
+                    WHERE ST_DWithin(pb.geom::geography, e.geom::geography, :d)
+                    )) / COUNT(*), 2)::float as pct_within_dist
+                FROM earthquakes e;"""),
+                {"d": dist},
+            ).one()
+            pct_list[i]["distance"] = dist
+            pct_list[i]["total"] = total_events
+            pct_list[i]["within"] = pct[0]
+            pct_list[i]["pct"] = pct[1]
+    return pct_list

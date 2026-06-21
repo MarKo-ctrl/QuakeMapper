@@ -599,3 +599,53 @@ dtype: int64
 2026-06-07 23:53 - INFO - Clustering already complete. Skipping.
 2026-06-07 23:58 - INFO - Database already contains all earthquake data.
 2026-06-07 23:58 - INFO - Clustering already complete. Skipping.
+2026-06-08 00:13 - INFO - Database already contains all earthquake data.
+2026-06-08 00:13 - INFO - Clustering already complete. Skipping.
+2026-06-08 00:14 - INFO - Database already contains all earthquake data.
+2026-06-08 00:15 - INFO - Clustering already complete. Skipping.
+2026-06-10 22:51 - INFO - Database already contains all earthquake data.
+2026-06-10 22:51 - INFO - Clustering already complete. Skipping.
+2026-06-10 22:59 - INFO - Database already contains all earthquake data.
+2026-06-10 23:00 - INFO - Database already contains all earthquake data.
+2026-06-10 23:01 - INFO - cluster_id
+ 0     110915
+-1      31822
+ 2      10130
+ 1       5354
+ 4       5333
+ 6       3100
+ 3       3071
+ 5       1981
+ 8        952
+ 9        921
+ 7        865
+ 11       833
+ 10       528
+dtype: int64
+2026-06-10 23:08 - INFO - Database already contains all earthquake data.
+2026-06-10 23:08 - INFO - Clustering already complete. Skipping.
+2026-06-10 23:12 - INFO - Database already contains all earthquake data.
+2026-06-10 23:12 - INFO - Clustering already complete. Skipping.
+2026-06-10 23:15 - INFO - Database already contains all earthquake data.
+2026-06-10 23:15 - INFO - Clustering already complete. Skipping.
+2026-06-10 23:17 - INFO - Database already contains all earthquake data.
+2026-06-10 23:17 - INFO - Clustering already complete. Skipping.
+2026-06-13 23:08 - INFO - Database already contains all earthquake data.
+2026-06-13 23:09 - INFO - cluster_id
+ 0     114892
+-1      26170
+ 1      11322
+ 3       6103
+ 6       5336
+ 4       3504
+ 5       2076
+ 9       1393
+ 8       1038
+ 2        986
+ 7        959
+ 11       559
+ 10       524
+ 13       478
+ 12       465
+dtype: int64
+2026-06-21 18:41 - INFO - Database already contains all earthquake data.

@@ -2,6 +2,7 @@ import os
 import contextily as cx  # pyright: ignore[reportMissingImports]
 import matplotlib.pyplot as plt
 from matplotlib.colors import ListedColormap
+import geopandas as gpd # pyright: ignore[reportMissingModuleSource]
 
 
 def make_colormap():
@@ -16,6 +17,9 @@ def make_colormap():
         "#fdbf6f",
         "#ff7f00",
         "#cab2d6",
+        "#6a3d9a",
+        "#ffff99",
+        "#b15928",
     ]
     return ListedColormap(custom_colors)
 
@@ -24,7 +28,7 @@ def generate_basemap_path(w, s, e, n, z):
     return os.getcwd() + f"/basemaps/basemap_{w}_{s}_{e}_{n}_z{z}.tif"
 
 
-# download a CartoDB basemap based on bbox
+# download a basemap based on bbox
 def get_basemap(w=-180, s=-90, e=180, n=90, zoom=3):
     basemap_path = generate_basemap_path(w, s, e, n, zoom)
     if not os.path.exists(basemap_path):
@@ -71,10 +75,16 @@ def hexbin_plot(
     plt.show()
 
 
+def get_plate_boundaries(filepath="data/PB2002_boundaries.json",
+                         crs: int = 3857) -> gpd.GeoDataFrame:
+    plate_boundaries = gpd.read_file(filepath)
+    return plate_boundaries.to_crs(crs)
+
+
 def cluster_plot(
     gdf, cluster_col="cluster_id", bbox: tuple | None = None, title=None, zoom=3
 ):
-
+    plate_boundaries = get_plate_boundaries(crs=3857)
     colormap = make_colormap()
 
     if bbox is not None:
@@ -105,10 +115,15 @@ def cluster_plot(
         "Cluster 7",
         "Cluster 8",
         "Cluster 9",
+        "Cluster 10",
+        "Cluster 11",
+        "Cluster 12",
     ]
     for text, label in zip(legend.get_texts(), new_labels):
         text.set_text(label)
         
+    plate_boundaries.plot(ax=base, color="white", linewidth=1.25, linestyle="dashdot")
+
     cx.add_basemap(
         base,
         crs=clusters.crs,
