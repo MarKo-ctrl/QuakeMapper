@@ -1,0 +1,27 @@
+name: earthq
+channels:
+  - conda-forge
+dependencies:
+  - python==3.14.2
+  - geopandas
+  - jupyterlab
+  - contextily
+  - geodatasets
+  - r-tmap
+  - r-essentials
+  - r-sf
+  - r-tidyverse
+  - r-base
+  - r-ggspatial
+  - r-gifski
+  - imageio
+  - pysal
+  - ipywidgets
+  - pointpats
+  - pytest
+  - sqlalchemy
+  - psycopg2
+  - geoalchemy2
+  - python-dotenv
+  - scikit-learn
+  - cartopy
