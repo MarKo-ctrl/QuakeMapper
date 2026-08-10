@@ -1,4 +1,4 @@
-import psycopg2 # pyright: ignore[reportMissingModuleSource]
+import psycopg2
 from dotenv import load_dotenv
 from sqlalchemy import create_engine
 from sqlalchemy.engine import URL

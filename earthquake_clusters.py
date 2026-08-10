@@ -1,6 +1,8 @@
 import logging
+
 import pandas as pd
-from lib import clustering, db_queries, plot, db_setup, get_data
+
+from lib import clustering, db_queries, db_setup, get_data, plot
 
 logging.basicConfig(
     filename="logs/info_execute.log",

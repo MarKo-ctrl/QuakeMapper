@@ -3,8 +3,8 @@ import logging
 from datetime import date, datetime, timezone
 
 import requests
-from geoalchemy2 import Geometry # pyright: ignore[reportMissingImports]
-from geoalchemy2.elements import WKTElement  # pyright: ignore[reportMissingImports]
+from geoalchemy2 import Geometry
+from geoalchemy2.elements import WKTElement
 from sqlalchemy import (
     Column,
     Integer,

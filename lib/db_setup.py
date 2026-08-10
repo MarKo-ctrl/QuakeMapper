@@ -1,6 +1,6 @@
-from psycopg2 import sql, errors # pyright: ignore[reportMissingModuleSource]
-from .db import get_psycopg2_connection
+from psycopg2 import errors, sql
 
+from .db import get_psycopg2_connection
 
 DB_NAME = "quakemapper"
 

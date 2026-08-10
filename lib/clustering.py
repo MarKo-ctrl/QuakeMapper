@@ -1,7 +1,7 @@
-import numpy as np
-from sklearn.neighbors import NearestNeighbors
-from sklearn.cluster import DBSCAN
 import matplotlib.pyplot as plt
+import numpy as np
+from sklearn.cluster import DBSCAN
+from sklearn.neighbors import NearestNeighbors
 
 
 def degrees_to_radians(gdf):

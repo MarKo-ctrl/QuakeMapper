@@ -1,8 +1,9 @@
 import os
-import contextily as cx  # pyright: ignore[reportMissingImports]
+
+import contextily as cx
+import geopandas as gpd
 import matplotlib.pyplot as plt
 from matplotlib.colors import ListedColormap
-import geopandas as gpd # pyright: ignore[reportMissingModuleSource]
 
 
 def make_colormap():

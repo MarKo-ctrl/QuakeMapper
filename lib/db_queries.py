@@ -1,5 +1,5 @@
-import geopandas as gpd  # pyright: ignore[reportMissingModuleSource]
-from psycopg2.extras import execute_values  # pyright: ignore[reportMissingModuleSource]
+import geopandas as gpd
+from psycopg2.extras import execute_values
 from sqlalchemy import text
 
 from .db import get_engine, get_psycopg2_connection
