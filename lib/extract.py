@@ -1,5 +1,5 @@
 import re
-from datetime import datetime
+from datetime import datetime, timezone
 
 from shapely.geometry import Point
 
@@ -7,53 +7,57 @@ from shapely.geometry import Point
 def to_date(text):
     """
     Convert date strings from a specific format found within a given text.
-
+ 
     This function scans the input text for date patterns that match
     the format 'YYYY MMM DD', where 'YYYY' is a 4-digit year, 'MMM'
     is a 3-letter month abbreviation (in uppercase), and 'DD'
     is the 1 or 2-digit day of the month. It extracts any matching
-    dates and returns them as datetime objects.
-
+    dates and returns them as timezone-aware datetime objects (UTC).
+ 
     Args:
         text (str): The input text containing potential date strings.
-
+ 
     Returns:
-        list: A list of datetime.datetime objects representing the dates found.
-        If no valid dates are found, an empty list is returned.
-
+        list: A list of datetime.datetime objects (UTC) representing the
+        dates found. If no valid dates are found, an empty list is returned.
+ 
     Example:
         >>> to_date("The event is planned for 2025 MAR 15 and 2026 APR 02.")
-        [datetime.datetime(2025, 3, 15, 0, 0), datetime.datetime(2026, 4, 2, 0, 0)]
+        [datetime.datetime(2025, 3, 15, 0, 0, tzinfo=datetime.timezone.utc), datetime.datetime(2026, 4, 2, 0, 0, tzinfo=datetime.timezone.utc)]
     """
     date_re = re.compile(r"(\d{4}\s+[A-Z]{3}\s+\d{1,2})")
     dates = date_re.findall(text)
-    return [datetime.strptime(d, "%Y %b %d") for d in dates]
+    return [
+        datetime.strptime(d, "%Y %b %d").replace(tzinfo=timezone.utc) for d in dates
+    ]
 
 
 def to_time(text):
     """
     Convert time strings from a specific format found within a given text.
-
+ 
     This function scans the input text for time patterns that match
     the format 'HH MM SS.ssssss', where 'HH' is the 2-digit hour (24-hour format),
     'MM' is the 2-digit minute, and 'SS.ssssss' represents the seconds
     which may include a fractional part. It extracts any matching times
-    and returns them as datetime.time objects.
-
+    and returns them as timezone-aware datetime.time objects (UTC).
+ 
     Args:
         text (str): The input text containing potential time strings.
-
+ 
     Returns:
-        list: A list of datetime.time objects representing the times found.
-        If no valid times are found, an empty list is returned.
-
+        list: A list of datetime.time objects (UTC) representing the times
+        found. If no valid times are found, an empty list is returned.
+ 
     Example:
         >>> to_time("The event starts at 14 30 59.123456 and ends at 15 45 50.654321.")
-        [datetime.time(14, 30, 59, 123456), datetime.time(15, 45, 50, 654321)]
+        [datetime.time(14, 30, 59, 123456, tzinfo=datetime.timezone.utc), datetime.time(15, 45, 50, 654321, tzinfo=datetime.timezone.utc)]
     """
     time_re = re.compile(r"\d{2}\s{1}\d{2}\s{1}[\d.]+")
     times = time_re.findall(text)
-    return [datetime.strptime(t, "%H %M %S.%f").time() for t in times]
+    return [
+         datetime.strptime(t, "%H %M %S.%f").replace(tzinfo=timezone.utc).timetz() for t in times
+    ]
 
 
 def to_latitude(text):
