@@ -1,4 +1,5 @@
 import geopandas as gpd
+import psycopg2
 from psycopg2.extras import execute_values
 from sqlalchemy import text
 
@@ -67,15 +68,17 @@ def update_column(
     Update a column in the database
     """
     conn = get_psycopg2_connection()
-    query = f"""UPDATE {table_name}
-            SET {column_name} = %(new_value)s
-            {f"WHERE {condition}" if condition else ""};"""
+    query = psycopg2.sql.SQL("UPDATE {table} SET {column} = %(new_value)s {where_clause};")\
+        .format(table=psycopg2.sql.Identifier(table_name),
+                column=psycopg2.sql.Identifier(column_name),
+                where_clause=psycopg2.sql.SQL(f"WHERE {condition}" if condition else psycopg2.sql.SQL("")))
     try:
         with conn.cursor() as cur:
             cur.execute(query, {"new_value": new_value})
         conn.commit()
         print(f"Column '{column_name}' updated in table '{table_name}'.")
-    except Exception as e:
+    except psycopg2.Error as e:
+        conn.rollback()
         print(f"Error updating column '{column_name}' in table '{table_name}': {e}")
 
 
@@ -96,7 +99,7 @@ def update_cluster_labels(gdf: gpd.GeoDataFrame, table_name: str, column_name: s
                 )
             conn.commit()
         print(f"Cluster labels updated in table '{table_name}'.")
-    except Exception as e:
+    except psycopg2.Error as e:
         print(f"Error updating cluster labels in table '{table_name}': {e}")
 
 
