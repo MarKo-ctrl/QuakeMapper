@@ -133,9 +133,10 @@ def cluster_complete():
         return nn.all()[0][0]
 
 
-def pct_events_within(distances: list[int] = [150_000, 300_000, 500_000]):
+def pct_events_within(distances: list[int]):
     pct_list = [{"distance": "", "total":"", "within":"", "pct":""} for _ in range(len(distances))]
-
+    distances = [150_000, 300_000, 500_000]
+    
     with engine.connect() as conn:
         total_events = conn.execute(text(
             """
