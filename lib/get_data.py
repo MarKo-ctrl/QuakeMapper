@@ -31,6 +31,8 @@ logging.basicConfig(
     level=logging.INFO,
 )
 
+logger = logging.getLogger(__name__)
+
 USGS_BASE = "https://earthquake.usgs.gov/fdsnws/event/1/query"
 
 _meta = MetaData()
@@ -89,11 +91,11 @@ def parse_feature(feature: dict) -> dict:
     dt = datetime.fromtimestamp(props["time"] / 1000, tz=timezone.utc)
 
     if props["mag"] is None:
-        logging.warning(f"{feature['id']}, {dt.year}, {dt.month} - null magnitude")
+        logger.warning(f"{feature['id']}, {dt.year}, {dt.month} - null magnitude")
         # return None
 
     if len(feature["id"]) > 20:
-        logging.warning(f"Long ID found: {feature['id']} ({len(feature['id'])} chars)")
+        logger.warning(f"Long ID found: {feature['id']} ({len(feature['id'])} chars)")
 
     return {
         "id": feature["id"],
@@ -156,16 +158,12 @@ def fetch_all(start_yr: int, end_yr: int) -> None:
     engine = get_engine()
     for start, end in generate_date_ranges(start_yr, end_yr):
         if month_exists(engine, start.year, start.month):
-            logging.info(f"{start.year}-{start.month:02d}: already loaded, skipping.")
+            logger.info(f"{start.year}-{start.month:02d}: already loaded, skipping.")
             continue
 
-        logging.info(f"{start.year}-{start.month:02d}: fetching ...")
+        logger.info(f"{start.year}-{start.month:02d}: fetching ...")
 
         records = fetch_chunk(start, end)
         insert_chunk(engine, records)
 
-        logging.info(f"{len(records)} events inserted.")
-
-
-# if __name__ == "__main__":
-#     fetch_all()
+        logger.info(f"{len(records)} events inserted.")
