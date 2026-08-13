@@ -2,7 +2,9 @@ import calendar
 import logging
 from datetime import date, datetime, timezone
 
+import geopandas as gpd
 import requests
+import shapely
 from geoalchemy2 import Geometry
 from geoalchemy2.elements import WKTElement
 from sqlalchemy import (
@@ -20,6 +22,8 @@ from sqlalchemy.dialects.postgresql import TIMESTAMP as PG_TIMESTAMP
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 
 from .db import get_engine
+
+engine = get_engine()
 
 logging.basicConfig(
     filename="logs/info_insert.log",
@@ -155,7 +159,6 @@ def fetch_all(start_yr: int, end_yr: int) -> None:
     iterates date ranges, skip existing months,
     fetches and inserts.
     """
-    engine = get_engine()
     for start, end in generate_date_ranges(start_yr, end_yr):
         if month_exists(engine, start.year, start.month):
             logger.info(f"{start.year}-{start.month:02d}: already loaded, skipping.")
@@ -167,3 +170,18 @@ def fetch_all(start_yr: int, end_yr: int) -> None:
         insert_chunk(engine, records)
 
         logger.info(f"{len(records)} events inserted.")
+
+def multi_poly(geom):
+    if geom.geom_type == 'Polygon':
+        return shapely.MultiPolygon([geom])
+    else:
+        return geom
+
+def geojson_to_postgis(filepath: str, tablename: str):
+    gdf = gpd.GeoDataFrame.from_file(filepath)
+    gdf["geometry"] = gdf["geometry"].apply(multi_poly)
+    print(gdf)
+    gdf.to_postgis(name=tablename,
+                   con=engine,
+                   if_exists="replace",
+                   dtype={"geometry":Geometry("MULTIPOLYGON", srid=4326)})
