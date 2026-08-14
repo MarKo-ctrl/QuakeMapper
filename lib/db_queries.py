@@ -1,13 +1,13 @@
 import geopandas as gpd
 import psycopg2
+import sqlalchemy
 from psycopg2.extras import execute_values
-from sqlalchemy import text
 
-from .db import get_engine, get_psycopg2_connection
+from . import db
 
 # ROLE: query and prepare data for analysis
 
-engine = get_engine()
+engine = db.get_engine()
 EXPECTED_ROW_COUNT = 175_000  # approximate USGS M4.5+ events, 2000-2025
 
 
@@ -67,11 +67,16 @@ def update_column(
     """
     Update a column in the database
     """
-    conn = get_psycopg2_connection()
-    query = psycopg2.sql.SQL("UPDATE {table} SET {column} = %(new_value)s {where_clause};")\
-        .format(table=psycopg2.sql.Identifier(table_name),
-                column=psycopg2.sql.Identifier(column_name),
-                where_clause=psycopg2.sql.SQL(f"WHERE {condition}" if condition else psycopg2.sql.SQL("")))
+    conn = db.get_psycopg2_connection()
+    query = psycopg2.sql.SQL(
+        "UPDATE {table} SET {column} = %(new_value)s {where_clause};"
+    ).format(
+        table=psycopg2.sql.Identifier(table_name),
+        column=psycopg2.sql.Identifier(column_name),
+        where_clause=psycopg2.sql.SQL(
+            f"WHERE {condition}" if condition else psycopg2.sql.SQL("")
+        ),
+    )
     try:
         with conn.cursor() as cur:
             cur.execute(query, {"new_value": new_value})
@@ -88,7 +93,7 @@ def update_cluster_labels(gdf: gpd.GeoDataFrame, table_name: str, column_name: s
     """
     pairs = list(zip(gdf[column_name], gdf["id"]))
     try:
-        with get_psycopg2_connection() as conn:
+        with db.get_psycopg2_connection() as conn:
             with conn.cursor() as cur:
                 execute_values(
                     cur,
@@ -105,7 +110,7 @@ def update_cluster_labels(gdf: gpd.GeoDataFrame, table_name: str, column_name: s
 
 def fetch_complete():
     with engine.connect() as conn:
-        c = conn.execute(text("""SELECT COUNT(*) FROM earthquakes"""))
+        c = conn.execute(sqlalchemy.text("""SELECT COUNT(*) FROM earthquakes"""))
         return (c.scalar() or 0) > EXPECTED_ROW_COUNT
 
 
@@ -113,7 +118,7 @@ def cluster_complete():
     with engine.connect() as conn:
         # check that column cluster_id exists
         e = conn.execute(
-            text("""SELECT EXISTS (SELECT 1 
+            sqlalchemy.text("""SELECT EXISTS (SELECT 1 
             FROM information_schema.columns 
             WHERE table_schema='public'
                 AND table_name='earthquakes'
@@ -126,7 +131,7 @@ def cluster_complete():
 
         # check that cluster_id is not null
         nn = conn.execute(
-            text("""SELECT COUNT(*) > 0
+            sqlalchemy.text("""SELECT COUNT(*) > 0
             FROM earthquakes
             WHERE cluster_id IS NOT NULL""")
         )
@@ -134,20 +139,22 @@ def cluster_complete():
 
 
 def pct_events_within(distances: list[int]):
-    pct_list = [{"distance": "", "total":"", "within":"", "pct":""} for _ in range(len(distances))]
+    pct_list = [
+        {"distance": "", "total": "", "within": "", "pct": ""}
+        for _ in range(len(distances))
+    ]
     distances = [150_000, 300_000, 500_000]
-    
+
     with engine.connect() as conn:
-        total_events = conn.execute(text(
-            """
-            SELECT Count(*)
-            FROM earthquakes e;"""
-        )).scalar()
+        total_events = conn.execute(
+            sqlalchemy.text("""SELECT Count(*)
+            FROM earthquakes e;""")
+        ).scalar()
 
     for i, dist in enumerate(distances):
         with engine.connect() as conn:
             pct = conn.execute(
-                text("""
+                sqlalchemy.text("""
                 SELECT COUNT(*) FILTER (WHERE EXISTS (
                     SELECT 1 FROM plate_boundaries pb
                     WHERE ST_DWithin(pb.geom::geography, e.geom::geography, :d)
@@ -164,3 +171,15 @@ def pct_events_within(distances: list[int]):
             pct_list[i]["within"] = pct[0]
             pct_list[i]["pct"] = pct[1]
     return pct_list
+
+
+def table_exists_complete(tablename: str):
+    if not sqlalchemy.inspect(engine).has_table(tablename):
+            return False
+    else:
+        reflected_tbl = sqlalchemy.Table(tablename, db.metadata_obj, autoload_with=engine)
+        stmt = sqlalchemy.select(sqlalchemy.func.count()).select_from(reflected_tbl)
+
+        with engine.connect() as conn:
+            count = conn.execute(stmt)
+            return count.scalar() > 0

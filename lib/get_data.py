@@ -22,6 +22,7 @@ from sqlalchemy.dialects.postgresql import TIMESTAMP as PG_TIMESTAMP
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 
 from .db import get_engine
+from .db_queries import table_exists_complete
 
 engine = get_engine()
 
@@ -180,8 +181,11 @@ def multi_poly(geom):
 def geojson_to_postgis(filepath: str, tablename: str):
     gdf = gpd.GeoDataFrame.from_file(filepath)
     gdf["geometry"] = gdf["geometry"].apply(multi_poly)
-    print(gdf)
-    gdf.to_postgis(name=tablename,
+
+    if table_exists_complete(tablename):
+        print("Table exists!")
+    else:
+        gdf.to_postgis(name=tablename,
                    con=engine,
                    if_exists="replace",
                    dtype={"geometry":Geometry("MULTIPOLYGON", srid=4326)})
