@@ -17,5 +17,5 @@ def get_engine(dbname: str = "quakemapper"):
     return create_engine(
         URL.create("postgresql+psycopg2",
             database=dbname),
-            echo=True
+            echo=False
     )

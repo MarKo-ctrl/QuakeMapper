@@ -1,0 +1,7 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python -c \"import scipy, matplotlib; print\\(scipy.__version__, matplotlib.__version__\\)\")"
+    ]
+  }
+}

@@ -1,4 +1,5 @@
 import geopandas as gpd
+import pandas as pd
 import psycopg2
 import sqlalchemy
 from psycopg2.extras import execute_values
@@ -183,3 +184,20 @@ def table_exists_complete(tablename: str):
         with engine.connect() as conn:
             count = conn.execute(stmt)
             return count.scalar() > 0
+
+def update_spatial_join():
+    """
+    Update a column in target_table with values from source_table's column,
+    matching rows via a spatial join (ST_Intersects on the geom columns).
+    """
+    query = sqlalchemy.text("""UPDATE earthquakes eq
+                            SET plate_name = pp."PlateName"
+                            FROM polygon_plate_boundaries pp
+                            WHERE ST_Intersects(eq.geom, pp.geom);""")
+    with engine.connect() as conn:
+        conn.execute(query)
+        conn.commit()
+
+
+def load_magnitude():
+    return pd.read_sql("SELECT magnitude FROM earthquakes", engine)["magnitude"]
