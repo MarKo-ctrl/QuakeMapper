@@ -11,6 +11,7 @@ else:
     get_data.geojson_to_postgis("data/PB2002_plates.json", "polygon_plate_boundaries")
     add_table_column("earthquakes", "plate_name", "TEXT")
 
+# Magnitude Histogram & QQ-plot
 magnitude = db_queries.load_magnitude()
 
 fig, (ax_hist, ax_qq) = plt.subplots(1, 2, figsize=(12, 5))
@@ -27,4 +28,20 @@ fig.tight_layout()
 fig.savefig("plots/magnitude_qq_plot.png")
 plt.close(fig)
 
+# Depth Histogram & QQ-plot
+depth = db_queries.load_depth()
+
+fig, (ax_hist, ax_qq) = plt.subplots(1, 2, figsize=(12, 5))
+
+ax_hist.hist(depth, bins=30, edgecolor="black")
+ax_hist.set_title("Histogram of Earthquake Depths")
+ax_hist.set_xlabel("Depth")
+ax_hist.set_ylabel("Count")
+
+stats.probplot(depth, dist="norm", plot=ax_qq)
+ax_qq.set_title("Q-Q Plot of Earthquakes Depth")
+
+fig.tight_layout()
+fig.savefig("plots/depth_qq_plot.png")
+plt.close(fig)
 

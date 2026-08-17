@@ -201,3 +201,7 @@ def update_spatial_join():
 
 def load_magnitude():
     return pd.read_sql("SELECT magnitude FROM earthquakes", engine)["magnitude"]
+
+
+def load_depth():
+    return pd.read_sql("SELECT depth FROM earthquakes", engine)["depth"]
