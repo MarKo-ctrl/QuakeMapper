@@ -45,3 +45,17 @@ fig.tight_layout()
 fig.savefig("plots/depth_qq_plot.png")
 plt.close(fig)
 
+# Aggregate stats per plate / cluster_id
+stats_df = db_queries.load_magnitude_depth_plate_cluster()
+
+by_plate = db_queries.aggregate_stats(stats_df, "plate_name")
+print(by_plate)
+
+by_cluster = db_queries.aggregate_stats(stats_df, "cluster_id")
+print(by_cluster)
+
+# Depth stats per year
+year_depth_df = db_queries.load_year_depth()
+depth_by_year = db_queries.depth_stats_by_year(year_depth_df)
+print(depth_by_year)
+

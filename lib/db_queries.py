@@ -205,3 +205,52 @@ def load_magnitude():
 
 def load_depth():
     return pd.read_sql("SELECT depth FROM earthquakes", engine)["depth"]
+
+
+def load_magnitude_depth_plate_cluster():
+    """
+    Load magnitude, depth, plate_name and cluster_id columns.
+    """
+    query = "SELECT magnitude, depth, plate_name, cluster_id FROM earthquakes"
+    return pd.read_sql(query, engine)
+
+
+def aggregate_stats(df: pd.DataFrame, group_col: str):
+    """
+    Compute Count, Min, Max, Median and IQR of magnitude and depth,
+    grouped by group_col.
+    """
+    def iqr(s):
+        return s.quantile(0.75) - s.quantile(0.25)
+
+    return df.groupby(group_col)[["magnitude", "depth"]].agg(
+        ["count", "min", "max", "median", iqr]
+    )
+
+
+def load_year_depth():
+    """
+    Load year and depth columns.
+    """
+    query = "SELECT year, depth FROM earthquakes"
+    return pd.read_sql(query, engine)
+
+
+def depth_stats_by_year(df: pd.DataFrame):
+    """
+    Compute Count, proportion of events with depth == 10.0
+    (the USGS default/fixed depth), Median and IQR of depth,
+    grouped by year.
+    """
+    def iqr(s):
+        return s.quantile(0.75) - s.quantile(0.25)
+
+    def pct_depth_10(s):
+        return (s == 10.0).mean()
+
+    return df.groupby("year")["depth"].agg(
+        count="count",
+        pct_depth_10=pct_depth_10,
+        median="median",
+        iqr=iqr,
+    )
